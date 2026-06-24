@@ -33,19 +33,31 @@
         </ul>
       </nav>
 
-      <!-- User Stats Pill -->
-      <div class="user-stats-bar">
-        <div class="stat-item" title="Daily Streak">
-          <span class="stat-icon">🔥</span>
-          <span id="header-streak-val">1</span>
+      <!-- Header Controls Area -->
+      <div class="header-controls">
+        <!-- Audio Settings Bar -->
+        <div class="audio-settings-bar">
+          <span class="stat-icon">🗣️</span>
+          <select id="audio-mode-select" title="Speech Pronunciation Engine Mode">
+            <option value="phonetic">Fallback Phonetics (Accurate)</option>
+            <option value="native">Native Standard (Literal)</option>
+          </select>
         </div>
-        <div class="stat-item" title="Total XP">
-          <span class="stat-icon">✨</span>
-          <span class="xp-pill"><span id="header-xp-val">0</span> XP</span>
-        </div>
-        <div class="stat-item" title="Current Level">
-          <span class="stat-icon">🏆</span>
-          <span id="header-level-val" style="font-weight: 600; color: var(--accent);">Beginner</span>
+
+        <!-- User Stats Pill -->
+        <div class="user-stats-bar">
+          <div class="stat-item" title="Daily Streak">
+            <span class="stat-icon">🔥</span>
+            <span id="header-streak-val">1</span>
+          </div>
+          <div class="stat-item" title="Total XP">
+            <span class="stat-icon">✨</span>
+            <span class="xp-pill"><span id="header-xp-val">0</span> XP</span>
+          </div>
+          <div class="stat-item" title="Current Level">
+            <span class="stat-icon">🏆</span>
+            <span id="header-level-val" style="font-weight: 600; color: var(--accent);">Beginner</span>
+          </div>
         </div>
       </div>
     </div>

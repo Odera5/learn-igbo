@@ -976,4 +976,16 @@ function setupEventListeners() {
       setTimeout(() => card.classList.remove('audio-playing'), 400);
     });
   });
+
+  // Audio Mode Selection trigger
+  const audioModeSelect = document.getElementById('audio-mode-select');
+  if (audioModeSelect) {
+    // Set initial value based on engine status
+    audioModeSelect.value = IgboAudio.pronunciationMode;
+
+    // Listen to changes
+    audioModeSelect.addEventListener('change', () => {
+      IgboAudio.setPronunciationMode(audioModeSelect.value);
+    });
+  }
 }

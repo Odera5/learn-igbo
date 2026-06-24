@@ -6,6 +6,7 @@ class IgboAudioEngine {
     this.audioCtx = null;
     this.voice = null;
     this.isTonesEnabled = true;
+    this.pronunciationMode = (typeof window !== 'undefined' && localStorage.getItem('igbo_pronunciation_mode')) || 'phonetic';
 
     // Load available voices when they change
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -48,6 +49,79 @@ class IgboAudioEngine {
   }
 
   /**
+   * Set pronunciation mode ('phonetic' or 'native')
+   * @param {string} mode Mode to select
+   */
+  setPronunciationMode(mode) {
+    if (mode === 'phonetic' || mode === 'native') {
+      this.pronunciationMode = mode;
+      localStorage.setItem('igbo_pronunciation_mode', mode);
+    }
+  }
+
+  /**
+   * Translates Igbo text into a phonetic representation optimized for standard English synthesizers.
+   * @param {string} text Igbo text
+   * @returns {string} phonetic text
+   */
+  convertToPhoneticForTTS(text) {
+    if (!text) return "";
+    
+    let clean = this.stripToneMarks(text);
+    let processed = clean.toLowerCase();
+    
+    // 1. Syllabic nasals at word start (e.g. mba -> m-ba, nna -> n-na)
+    processed = processed.replace(/\b([mn])(?=[bcdfghjklmnpqrstvwxyzñ])/g, '$1-');
+    
+    // 2. Digraphs (use placeholders to avoid collision)
+    processed = processed.replace(/gb/g, '___B___');
+    processed = processed.replace(/kp/g, '___P___');
+    processed = processed.replace(/gh/g, '___H___');
+    
+    // 3. Double vowels (long vowels)
+    processed = processed.replace(/aa/g, '___LONG_AH___');
+    processed = processed.replace(/ee/g, '___LONG_AY___');
+    processed = processed.replace(/ii/g, '___LONG_EE___');
+    processed = processed.replace(/ịị/g, '___LONG_EE___');
+    processed = processed.replace(/oo/g, '___LONG_OH___');
+    processed = processed.replace(/ọọ/g, '___LONG_AW___');
+    processed = processed.replace(/uu/g, '___LONG_OO___');
+    processed = processed.replace(/ụụ/g, '___LONG_OO___');
+    
+    // 4. Single vowels (use placeholders)
+    processed = processed.replace(/a/g, '___AH___');
+    processed = processed.replace(/e/g, '___EH___');
+    processed = processed.replace(/i/g, '___EE___');
+    processed = processed.replace(/ị/g, '___EE___');
+    processed = processed.replace(/o/g, '___OH___');
+    processed = processed.replace(/ọ/g, '___AW___');
+    processed = processed.replace(/u/g, '___OO___');
+    processed = processed.replace(/ụ/g, '___OO___');
+    processed = processed.replace(/ñ/g, 'ng');
+    
+    // 5. Replace placeholders with their phonetic equivalents
+    processed = processed.replace(/___LONG_AH___/g, 'ah-ah');
+    processed = processed.replace(/___LONG_AY___/g, 'ay-ay');
+    processed = processed.replace(/___LONG_EE___/g, 'ee-ee');
+    processed = processed.replace(/___LONG_OH___/g, 'oh-oh');
+    processed = processed.replace(/___LONG_AW___/g, 'aw-aw');
+    processed = processed.replace(/___LONG_OO___/g, 'oo-oo');
+    
+    processed = processed.replace(/___B___/g, 'b');
+    processed = processed.replace(/___P___/g, 'p');
+    processed = processed.replace(/___H___/g, 'h');
+    
+    processed = processed.replace(/___AH___/g, 'ah');
+    processed = processed.replace(/___EH___/g, 'eh');
+    processed = processed.replace(/___EE___/g, 'ee');
+    processed = processed.replace(/___OH___/g, 'oh');
+    processed = processed.replace(/___AW___/g, 'aw');
+    processed = processed.replace(/___OO___/g, 'oo');
+    
+    return processed;
+  }
+
+  /**
    * Speak a word or phrase using SpeechSynthesis
    * @param {string} text The Igbo text to speak
    * @param {number} rate Speed rate (default 0.8 for learning clarity)
@@ -61,9 +135,17 @@ class IgboAudioEngine {
     // Cancel current speaking if any
     this.synth.cancel();
 
-    // Prepare text (strip tone marks for synthesis engines that get confused by them)
-    const cleanText = this.stripToneMarks(text);
-    const utterance = new SpeechSynthesisUtterance(cleanText);
+    // Check if using fallback voice
+    const isNativeVoice = this.voice && (this.voice.lang.startsWith('ig-') || this.voice.lang === 'ig');
+
+    let textToSpeak = text;
+    if (!isNativeVoice && this.pronunciationMode === 'phonetic') {
+      textToSpeak = this.convertToPhoneticForTTS(text);
+    } else {
+      textToSpeak = this.stripToneMarks(text);
+    }
+
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
     
     if (this.voice) {
       utterance.voice = this.voice;
