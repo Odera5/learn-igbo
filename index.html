@@ -19,8 +19,8 @@
         </div>
       </div>
       
-      <!-- Desktop Navigation -->
-      <nav>
+      <!-- Desktop/Mobile Navigation Menu -->
+      <nav id="app-nav">
         <ul>
           <li><a href="#dashboard" class="nav-link active" data-view="dashboard">Dashboard</a></li>
           <li><a href="#alphabet" class="nav-link" data-view="alphabet">Alphabet</a></li>
@@ -31,14 +31,25 @@
           <li><a href="#proverbs" class="nav-link" data-view="proverbs">Proverbs</a></li>
           <li><a href="#quizzes" class="nav-link" data-view="quizzes">Quizzes</a></li>
         </ul>
+        <!-- Audio Settings inside Nav Drawer (Visible on mobile screen drawer) -->
+        <div class="drawer-audio-settings">
+          <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 0.5rem; display: block;">Pronunciation Mode:</span>
+          <div class="audio-settings-bar">
+            <span class="stat-icon">🗣️</span>
+            <select class="audio-mode-select" title="Speech Pronunciation Engine Mode">
+              <option value="phonetic">Fallback Phonetics (Accurate)</option>
+              <option value="native">Native Standard (Literal)</option>
+            </select>
+          </div>
+        </div>
       </nav>
 
       <!-- Header Controls Area -->
       <div class="header-controls">
-        <!-- Audio Settings Bar -->
-        <div class="audio-settings-bar">
+        <!-- Audio Settings Bar (Hidden on Mobile) -->
+        <div class="audio-settings-bar header-audio-settings">
           <span class="stat-icon">🗣️</span>
-          <select id="audio-mode-select" title="Speech Pronunciation Engine Mode">
+          <select class="audio-mode-select" title="Speech Pronunciation Engine Mode">
             <option value="phonetic">Fallback Phonetics (Accurate)</option>
             <option value="native">Native Standard (Literal)</option>
           </select>
@@ -60,6 +71,13 @@
           </div>
         </div>
       </div>
+
+      <!-- Mobile Hamburger Menu Button -->
+      <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle navigation">
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+      </button>
     </div>
   </header>
 

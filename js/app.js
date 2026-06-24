@@ -977,15 +977,44 @@ function setupEventListeners() {
     });
   });
 
-  // Audio Mode Selection trigger
-  const audioModeSelect = document.getElementById('audio-mode-select');
-  if (audioModeSelect) {
-    // Set initial value based on engine status
-    audioModeSelect.value = IgboAudio.pronunciationMode;
+  // Audio Mode Selection trigger (multiple synchronized dropdowns)
+  const audioModeSelectors = document.querySelectorAll('.audio-mode-select');
+  audioModeSelectors.forEach(select => {
+    select.value = IgboAudio.pronunciationMode;
+    select.addEventListener('change', () => {
+      IgboAudio.setPronunciationMode(select.value);
+      // Synchronise other selects
+      audioModeSelectors.forEach(s => {
+        if (s !== select) s.value = select.value;
+      });
+    });
+  });
 
-    // Listen to changes
-    audioModeSelect.addEventListener('change', () => {
-      IgboAudio.setPronunciationMode(audioModeSelect.value);
+  // Mobile Navigation Drawer Toggle
+  const mobileToggle = document.getElementById('mobile-nav-toggle');
+  const appNav = document.getElementById('app-nav');
+  
+  if (mobileToggle && appNav) {
+    mobileToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      mobileToggle.classList.toggle('active');
+      appNav.classList.toggle('active');
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (appNav.classList.contains('active') && !appNav.contains(e.target) && e.target !== mobileToggle) {
+        mobileToggle.classList.remove('active');
+        appNav.classList.remove('active');
+      }
+    });
+
+    // Close menu when a navigation link is clicked
+    appNav.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileToggle.classList.remove('active');
+        appNav.classList.remove('active');
+      });
     });
   }
 }
