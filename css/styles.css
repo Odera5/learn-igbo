@@ -1540,8 +1540,10 @@ footer {
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
+    padding: 6rem 1.5rem 3rem 1.5rem;
+    overflow-y: auto;
     transform: translateY(-100%);
     transition: transform 0.4s cubic-bezier(0.1, 0.8, 0.2, 1);
     opacity: 0;
