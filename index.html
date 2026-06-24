@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mụta Igbo - Learn Igbo Language Platform</title>
+  <meta name="description" content="Master the Igbo language from beginner to advanced. Structured lessons, tone contour training, audio pronunciations, vocabulary flashcards, greetings, quizzes, and proverbs.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header>
+    <div class="header-container">
+      <div class="brand">
+        <div>
+          <span class="brand-logo">Mụta Igbo</span>
+          <div class="brand-subtitle">Speak, Read, and Write</div>
+        </div>
+      </div>
+      
+      <!-- Desktop Navigation -->
+      <nav>
+        <ul>
+          <li><a href="#dashboard" class="nav-link active" data-view="dashboard">Dashboard</a></li>
+          <li><a href="#alphabet" class="nav-link" data-view="alphabet">Alphabet</a></li>
+          <li><a href="#lessons" class="nav-link" data-view="lessons">Lessons</a></li>
+          <li><a href="#vocabulary" class="nav-link" data-view="vocabulary">Vocabulary</a></li>
+          <li><a href="#greetings" class="nav-link" data-view="greetings">Greetings</a></li>
+          <li><a href="#tonetrainer" class="nav-link" data-view="tonetrainer">Tone Trainer</a></li>
+          <li><a href="#proverbs" class="nav-link" data-view="proverbs">Proverbs</a></li>
+          <li><a href="#quizzes" class="nav-link" data-view="quizzes">Quizzes</a></li>
+        </ul>
+      </nav>
+
+      <!-- User Stats Pill -->
+      <div class="user-stats-bar">
+        <div class="stat-item" title="Daily Streak">
+          <span class="stat-icon">🔥</span>
+          <span id="header-streak-val">1</span>
+        </div>
+        <div class="stat-item" title="Total XP">
+          <span class="stat-icon">✨</span>
+          <span class="xp-pill"><span id="header-xp-val">0</span> XP</span>
+        </div>
+        <div class="stat-item" title="Current Level">
+          <span class="stat-icon">🏆</span>
+          <span id="header-level-val" style="font-weight: 600; color: var(--accent);">Beginner</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main View Container -->
+  <main>
+    
+    <!-- 1. DASHBOARD VIEW -->
+    <section id="view-dashboard" class="view-section active-view">
+      <div class="welcome-hero">
+        <div class="hero-text-block">
+          <h1>Nnọọ! Learn to speak <span>Igbo</span> like a native.</h1>
+          <p>Welcome to your learning dashboard. Discover lessons on structure, practice vocabulary, hear traditional pronunciations, and master tone curves.</p>
+        </div>
+        <div class="glass-panel hero-stats-card">
+          <div>
+            <h3 style="margin-bottom: 0.5rem; font-size: 1.1rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">Current Progress</h3>
+            <div class="streak-counter">
+              <span id="dashboard-streak-val">1</span> <span style="font-size: 1.2rem; color: var(--text-muted); font-weight: 500;">Day Streak</span>
+            </div>
+          </div>
+          <div class="progress-container">
+            <div class="progress-info">
+              <span id="dashboard-level-title">Level 1: Beginner</span>
+              <span id="dashboard-level-percent">0% Completed</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div id="dashboard-progress-fill" class="progress-bar-fill" style="width: 0%;"></div>
+            </div>
+            <p style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--text-muted);">Earn <strong style="color: var(--accent);">XP</strong> by completing lessons and quizzes to unlock higher levels.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Learning Pathway List -->
+        <div class="learning-pathway">
+          <h2 style="font-size: 1.8rem; color: var(--text-main); margin-bottom: 1rem;">Learning Paths</h2>
+          <div id="dashboard-paths-list">
+            <!-- Rendered dynamically in app.js -->
+          </div>
+        </div>
+
+        <!-- Vocab / Fact of the Day -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <div class="glass-panel daily-vocab-box">
+            <div>
+              <div class="level-badge" style="text-align: center;">Word of the Day</div>
+              <div class="vocab-of-day-content">
+                <div id="daily-word-val" class="vocab-of-day-word">Kedu</div>
+                <div id="daily-word-trans" class="vocab-of-day-translation">How are you? / Hello</div>
+                <div id="daily-word-ph" class="vocab-of-day-phonetic">[ké-dù] (High-Low tone)</div>
+              </div>
+            </div>
+            <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 1rem;">
+              <button id="daily-word-speak" class="audio-trigger-btn">
+                <span>🔊 Spoken Audio</span>
+              </button>
+              <button id="daily-word-tone" class="audio-trigger-btn" style="border-color: var(--terracotta); color: var(--terracotta);">
+                <span>🎵 Play Tones</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="glass-panel" style="background: linear-gradient(135deg, rgba(212,93,59,0.05) 0%, rgba(22,28,45,0.7) 100%);">
+            <h3 style="color: var(--accent); margin-bottom: 0.5rem;">💡 Learn Igbo Tones</h3>
+            <p style="font-size: 0.95rem; margin-bottom: 1rem;">Igbo is tonal. The exact same spelling can mean three different things depending on your pitch. Try the <strong>Tone Trainer</strong> in the navbar to practice sounding out pitch waves.</p>
+            <a href="#tonetrainer" class="audio-trigger-btn" style="display: inline-block;">Go to Tone Trainer →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. ALPHABET VIEW -->
+    <section id="view-alphabet" class="view-section">
+      <div class="glass-panel">
+        <div class="panel-header">
+          <h2>The Ónwụ Alphabet (Abụọdụ Igbo)</h2>
+          <span style="color: var(--text-muted);">Click letters to play pronunciations</span>
+        </div>
+        <p style="margin-bottom: 2rem;">The standard Igbo alphabet (Ónwụ) consists of 36 letters, including 8 vowels (marked in red), 19 consonants, and 9 digraphs (double letters like <em>gb</em>, <em>kp</em>, <em>nw</em>). Select any card below to listen, read descriptions, and study example words.</p>
+        
+        <div class="alphabet-grid" id="alphabet-container">
+          <!-- Alphabet cards rendered dynamically -->
+        </div>
+
+        <!-- Dynamic Letter detail expansion drawer -->
+        <div class="alphabet-detail-panel" id="letter-detail-panel">
+          <div class="alphabet-detail-grid">
+            <div class="alphabet-detail-char" id="detail-char">A</div>
+            <div class="alphabet-detail-info">
+              <h3 id="detail-title">Letter A (A)</h3>
+              <p id="detail-desc" style="margin-bottom: 1rem;">Pronounced like "a" in father.</p>
+              
+              <div style="display: flex; gap: 2rem; align-items: center;">
+                <div>
+                  <span style="font-size: 0.85rem; text-transform: uppercase; color: var(--accent);">Example Word</span>
+                  <div style="font-size: 1.4rem; font-weight: 600;" id="detail-example">Akpa</div>
+                </div>
+                <div>
+                  <span style="font-size: 0.85rem; text-transform: uppercase; color: var(--accent);">English Translation</span>
+                  <div style="font-size: 1.2rem; color: var(--text-muted);" id="detail-translation">Bag</div>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                  <button id="detail-speak-btn" class="audio-trigger-btn">🔊 Speak Word</button>
+                  <button id="detail-tone-btn" class="audio-trigger-btn" style="border-color: var(--terracotta); color: var(--terracotta);">🎵 Tone</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. LESSONS VIEW -->
+    <section id="view-lessons" class="view-section">
+      <div class="lessons-container">
+        <!-- Lessons Sidebar Navigation -->
+        <div class="glass-panel lessons-sidebar">
+          <div id="lessons-nav-tree" style="width: 100%;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Current Lesson Content Area -->
+        <div class="glass-panel">
+          <div id="lesson-content-placeholder">
+            <div style="text-align: center; padding: 4rem 2rem;">
+              <span style="font-size: 3rem;">📖</span>
+              <h2 style="margin-top: 1rem; color: var(--text-main);">Select a Lesson</h2>
+              <p style="margin-top: 0.5rem;">Choose a lesson from the left sidebar to start learning vocabulary, reading rules, and practicing pronunciation.</p>
+            </div>
+          </div>
+
+          <div id="lesson-content-area" style="display: none;">
+            <div class="panel-header">
+              <div>
+                <span class="level-badge" id="lesson-level-badge">LEVEL 1</span>
+                <h2 id="lesson-title">Lesson Title</h2>
+              </div>
+              <button id="mark-lesson-complete-btn" class="level-action-btn">Mark Complete (+50 XP)</button>
+            </div>
+
+            <!-- Main text of the lesson -->
+            <div class="lesson-body" id="lesson-text-body">
+              <!-- Injected from data.js -->
+            </div>
+
+            <!-- Vocabulary Cards belonging to this lesson -->
+            <h4 class="lesson-practice-header">Practice Vocabulary & Tones</h4>
+            <p style="font-size: 0.9rem; margin-bottom: 1.5rem;">Listen to the spoken audio or play the exact tone contour notes (High tone is higher pitched, Low tone is lower pitched) to understand the word pronunciation.</p>
+            
+            <div class="vocab-practice-grid" id="lesson-vocab-container">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. VOCABULARY FLASHCARDS VIEW -->
+    <section id="view-vocabulary" class="view-section">
+      <div class="glass-panel">
+        <div class="panel-header">
+          <h2>Vocabulary Flashcards</h2>
+          <span style="color: var(--text-muted);">Flip and test your memory</span>
+        </div>
+        <p style="margin-bottom: 1.5rem;">Select a vocabulary deck below to study. Flashcards are a great way to memorize nouns, verbs, and common words. Click the card to flip it over and reveal its English translation.</p>
+
+        <!-- Deck Selector -->
+        <div class="deck-selector-row" id="vocab-deck-tabs">
+          <button class="deck-tab active" data-deck="animals">🐾 Animals (Mmanụ Ụlọ)</button>
+          <button class="deck-tab" data-deck="food">🥘 Food & Drinks (Nri & Miri)</button>
+          <button class="deck-tab" data-deck="family">👨‍👩‍👧‍👦 Family (Ezinaụlọ)</button>
+          <button class="deck-tab" data-deck="verbs">🏃‍♂️ Common Verbs (Ngwaa)</button>
+        </div>
+
+        <!-- Interactive Flashcard Flipping Arena -->
+        <div class="flashcard-arena">
+          <div class="flashcard-perspective" id="flashcard-element">
+            <div class="flashcard-inner">
+              
+              <!-- Front (Igbo) -->
+              <div class="card-face card-front">
+                <div class="card-metadata">
+                  <span id="card-deck-indicator">Deck: Animals</span>
+                  <span>Igbo Word</span>
+                </div>
+                <div class="card-center-content">
+                  <div class="card-igbo-word" id="card-word-val">Ewu</div>
+                  <div class="card-phonetics-label" id="card-phonetics-val">[é-wù]</div>
+                  <div class="syllable-indicator-row" id="card-syllables-container">
+                    <span class="syllable-dot"></span>
+                    <span class="syllable-dot"></span>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1rem;">
+                  <button id="card-speak-btn" class="round-audio-btn" title="Spoken pronunciation">🔊</button>
+                  <button id="card-tone-btn" class="round-audio-btn tone-btn" title="Tone melody" style="color: var(--terracotta); border-color: rgba(212, 93, 59, 0.4);">🎵</button>
+                </div>
+                <div class="card-flip-prompt">Click to reveal translation</div>
+              </div>
+
+              <!-- Back (English) -->
+              <div class="card-face card-back">
+                <div class="card-metadata">
+                  <span>English Translation</span>
+                  <span id="card-deck-indicator-back">Deck: Animals</span>
+                </div>
+                <div class="card-center-content">
+                  <div class="card-english-translation" id="card-trans-val">Goat</div>
+                  <div class="card-vocab-type" id="card-type-val">Noun</div>
+                </div>
+                <div class="card-flip-prompt">Click to show Igbo word</div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Navigation Rows -->
+          <div class="card-nav-row">
+            <button class="card-btn" id="card-prev-btn">← Previous</button>
+            <span class="card-counter-indicator" id="card-count-indicator">1 of 7</span>
+            <button class="card-btn card-btn-accent" id="card-next-btn">Next Card →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. GREETINGS VIEW -->
+    <section id="view-greetings" class="view-section">
+      <div class="glass-panel">
+        <div class="panel-header">
+          <h2>Greetings & Everyday Phrases</h2>
+          <span style="color: var(--text-muted);">Real conversations and respect customs</span>
+        </div>
+        <p style="margin-bottom: 2rem;">In Igbo culture, greetings are highly prioritized. How you greet indicates respect, relationship, and mood. Learn standard morning greetings, market phrases, and travel expressions below.</p>
+
+        <div class="greetings-accordion" id="greetings-accordion-container">
+          <!-- Greetings grouped by category injected dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. TONE TRAINER VIEW -->
+    <section id="view-tonetrainer" class="view-section">
+      <div class="glass-panel">
+        <div class="panel-header">
+          <h2>Interactive Tone Trainer (Ọzụzụ Ụda olu)</h2>
+          <span style="color: var(--text-muted);">Master the 3-tone pitch system</span>
+        </div>
+        <p style="margin-bottom: 2rem;">Igbo is a tonal language. Tone is phonemic, meaning pitch differences change the actual meaning of words with identical spelling. In the system below, click the concepts to listen to pitch profiles, or sound out custom word tones visually.</p>
+
+        <div class="tone-trainer-interactive">
+          <div class="tone-desc-list">
+            <h3>Understand the Pitch Levels</h3>
+            <p>Every syllable carries a tone. Practice identifying these patterns:</p>
+            
+            <div class="tone-concept-card" id="tone-card-high" data-tone-pattern="[1]">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <span class="tone-accent-mark">High Tone (◌́)</span>
+                  <p style="font-size: 0.85rem; margin-top: 0.2rem;">Pronounced with a high vocal pitch. (Example: <strong>A</strong> in <em>Akpa</em>)</p>
+                </div>
+                <span style="font-size: 1.5rem;">🔊</span>
+              </div>
+            </div>
+
+            <div class="tone-concept-card" id="tone-card-low" data-tone-pattern="[-1]">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <span class="tone-accent-mark" style="color: var(--terracotta);">Low Tone (◌̀)</span>
+                  <p style="font-size: 0.85rem; margin-top: 0.2rem;">Pronounced with a dropped vocal pitch. (Example: <strong>wu</strong> in <em>Ewu</em>)</p>
+                </div>
+                <span style="font-size: 1.5rem;">🔊</span>
+              </div>
+            </div>
+
+            <div class="tone-concept-card" id="tone-card-down" data-tone-pattern="[0]">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <span class="tone-accent-mark" style="color: #64748b;">Downstep Tone (◌̄)</span>
+                  <p style="font-size: 0.85rem; margin-top: 0.2rem;">A high pitch dropped slightly, but not as low as a Low Tone.</p>
+                </div>
+                <span style="font-size: 1.5rem;">🔊</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tone-trainer-practice">
+            <h3 style="color: var(--accent); margin-bottom: 0.5rem;">Interactive Tonal Contour Visualizer</h3>
+            <p style="font-size: 0.9rem; margin-bottom: 1.5rem;">Select a word below to map its syllable pitches on the graph, then press "Play Pitch Melodies" to hear the tonal wave sequence synthesized.</p>
+            
+            <div style="margin-bottom: 1.5rem;">
+              <select id="tone-words-dropdown" style="padding: 0.6rem 1.25rem; font-size: 1rem; border-radius: var(--border-radius-sm); background: var(--bg-color); color: var(--text-main); border: 1px solid var(--panel-border);">
+                <option value="Óké" data-pattern="[1, 1]">Óké (Rat) - High-High</option>
+                <option value="Òkè" data-pattern="[-1, -1]">Òkè (Portion) - Low-Low</option>
+                <option value="Òké" data-pattern="[-1, 1]">Òké (Boundary) - Low-High</option>
+                <option value="Ókè" data-pattern="[1, -1]">Ókè (Male) - High-Low</option>
+                <option value="Osikapa" data-pattern="[1, -1, 1, 1]">Osikapa (Rice) - High-Low-High-High</option>
+                <option value="Ịbọla chị" data-pattern="[-1, -1, 1]">Ịbọla chị (Good morning) - Low-Low-High</option>
+              </select>
+            </div>
+
+            <!-- Pitch Plot Graph -->
+            <div class="tone-contour-canvas-container" id="tone-nodes-container">
+              <!-- Visualized dots will be injected here by app.js based on selected word pattern -->
+            </div>
+
+            <button id="tone-trainer-play-btn" class="start-quiz-btn" style="padding: 0.75rem 2rem; font-size: 1rem; margin-top: 1.5rem;">🎵 Play Pitch Melodies</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. PROVERBS VIEW -->
+    <section id="view-proverbs" class="view-section">
+      <div class="glass-panel">
+        <div class="panel-header">
+          <h2>Igbo Proverbs (Ilu Igbo)</h2>
+          <span style="color: var(--text-muted);">Wisdom of the Elders (Eziokwu Omenala)</span>
+        </div>
+        <p class="proverbs-header-desc">Igbo speech is saturated with proverbs. A proverb (Ilu) adds depth, wisdom, and rhetorical beauty to spoken conversations. Below, explore traditional proverbs, their literal English translations, and their true cultural and moral meanings.</p>
+
+        <div class="proverbs-grid" id="proverbs-container">
+          <!-- Proverbs injected dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. QUIZZES VIEW -->
+    <section id="view-quizzes" class="view-section">
+      
+      <!-- Welcome Screen -->
+      <div class="glass-panel quiz-welcome-screen" id="quiz-welcome-screen">
+        <span style="font-size: 3.5rem;">🎯</span>
+        <h2 style="margin-top: 1rem; color: var(--accent);">Test Your Igbo Knowledge</h2>
+        <p style="margin-top: 0.75rem;">Ready to challenge yourself? Take a quiz based on vowel harmony, tone patterns, greetings, and vocab terms. Get feedback on every answer and earn extra XP to level up!</p>
+        <button id="start-quiz-btn" class="start-quiz-btn">Start Quiz Now</button>
+      </div>
+
+      <!-- Active Quiz Screen -->
+      <div class="glass-panel quiz-container" id="quiz-active-screen" style="display: none;">
+        <div class="quiz-progress-bar">
+          <span id="quiz-q-counter">Question 1 of 8</span>
+          <span id="quiz-score-display" class="quiz-score-indicator">Current Score: 0/0</span>
+        </div>
+
+        <div class="progress-bar-bg" style="margin-bottom: 2rem; height: 6px;">
+          <div id="quiz-progress-fill" class="progress-bar-fill" style="width: 12.5%;"></div>
+        </div>
+
+        <div class="quiz-question-box">
+          <h3 id="quiz-question-text" class="quiz-question-text">Question text goes here?</h3>
+          <div class="quiz-options-list" id="quiz-options-container">
+            <!-- Options generated dynamically -->
+          </div>
+        </div>
+
+        <!-- Explanation Card (revealed after selection) -->
+        <div class="quiz-explanation-box" id="quiz-explanation-box">
+          <h5>💡 Cultural / Grammar Insight:</h5>
+          <div id="quiz-explanation-text" class="quiz-explanation-text">Insight details...</div>
+        </div>
+
+        <div class="quiz-footer">
+          <button id="quiz-next-btn" class="quiz-next-btn" style="display: none;">Next Question →</button>
+        </div>
+      </div>
+
+      <!-- Quiz Finished Screen -->
+      <div class="glass-panel quiz-finished-card" id="quiz-finished-screen" style="display: none;">
+        <div class="quiz-finished-icon">🎉</div>
+        <h2>Quiz Completed!</h2>
+        <p style="color: var(--text-muted); margin-top: 0.5rem; margin-bottom: 1.5rem;">Excellent job practicing your Igbo skills. Consistency is the key to mastery.</p>
+        
+        <div class="quiz-results-score" id="quiz-results-score-val">Score: 6 / 8 (75%)</div>
+        <div class="quiz-xp-earned" id="quiz-results-xp-val">+150 XP Gained</div>
+
+        <div class="quiz-finish-actions">
+          <button id="quiz-retry-btn" class="card-btn">Try Again</button>
+          <a href="#dashboard" class="start-quiz-btn" style="margin-top: 0; padding: 0.75rem 2rem; font-size: 1rem;">Back to Dashboard</a>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- App Footer -->
+  <footer>
+    <div class="footer-content">
+      <div>
+        <strong>Mụta Igbo Platform</strong> © 2026. All rights reserved.
+      </div>
+      <div>
+        Made with ❤️ to preserve and share the Igbo language and culture.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Dependency & Core App Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
