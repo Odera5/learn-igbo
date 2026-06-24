@@ -977,19 +977,6 @@ function setupEventListeners() {
     });
   });
 
-  // Audio Mode Selection trigger (multiple synchronized dropdowns)
-  const audioModeSelectors = document.querySelectorAll('.audio-mode-select');
-  audioModeSelectors.forEach(select => {
-    select.value = IgboAudio.pronunciationMode;
-    select.addEventListener('change', () => {
-      IgboAudio.setPronunciationMode(select.value);
-      // Synchronise other selects
-      audioModeSelectors.forEach(s => {
-        if (s !== select) s.value = select.value;
-      });
-    });
-  });
-
   // Mobile Navigation Drawer Toggle
   const mobileToggle = document.getElementById('mobile-nav-toggle');
   const appNav = document.getElementById('app-nav');
