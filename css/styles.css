@@ -1534,15 +1534,16 @@ footer {
     position: fixed;
     top: 0;
     right: 0;
-    bottom: 0;
     left: 0;
+    height: 100vh;
+    width: 100vw;
     background: var(--bg-color);
     z-index: 1000;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    padding: 6rem 1.5rem 3rem 1.5rem;
+    padding: 4.5rem 1.5rem 1.5rem 1.5rem;
     overflow-y: auto;
     transform: translateY(-100%);
     transition: transform 0.4s cubic-bezier(0.1, 0.8, 0.2, 1);
@@ -1555,17 +1556,19 @@ footer {
     visibility: visible;
   }
   nav ul {
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
     width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
   }
   nav a {
-    font-size: 1.3rem;
+    font-size: 1rem;
     color: var(--text-muted);
-    padding: 0.5rem 2rem;
+    padding: 0.5rem 1rem;
     display: block;
-    width: 80%;
+    width: 100%;
     text-align: center;
     border-bottom: none !important;
   }
@@ -1581,7 +1584,7 @@ footer {
   }
   .drawer-audio-settings {
     display: block;
-    margin-top: 2.5rem;
+    margin-top: 1.5rem;
     width: 80%;
     max-width: 280px;
     text-align: center;
