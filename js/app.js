@@ -182,6 +182,8 @@ function setupRouting() {
       renderLessonsSidebar();
     } else if (viewName === 'vocabulary') {
       renderVocabCard();
+    } else if (viewName === 'tutors') {
+      renderTutors();
     }
     
     // Scroll to top of content
@@ -774,6 +776,148 @@ function renderProverbs() {
 }
 
 
+// I. Tutor Directory Rendering & Interactive Booking Simulation
+let selectedTutor = null;
+let selectedDate = null;
+let selectedTime = null;
+
+function renderTutors() {
+  const container = document.getElementById('tutors-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!IGBO_DATA.tutors || IGBO_DATA.tutors.length === 0) {
+    container.innerHTML = '<p style="text-align: center; color: var(--text-muted);">No tutors currently available.</p>';
+    return;
+  }
+
+  IGBO_DATA.tutors.forEach(tutor => {
+    const card = document.createElement('div');
+    card.className = 'tutor-card glass-panel';
+    
+    // Build tags HTML
+    const tagsHTML = tutor.tags.map(tag => `<span class="tutor-tag">${tag}</span>`).join('');
+    
+    card.innerHTML = `
+      <div class="tutor-profile-header" style="display: flex; align-items: center; gap: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 0.75rem; margin-bottom: 0.75rem;">
+        <div class="tutor-avatar-ring" style="font-size: 2.2rem; background: rgba(255, 255, 255, 0.05); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--panel-border);">${tutor.avatar}</div>
+        <div class="tutor-header-text" style="flex: 1;">
+          <h3 style="font-size: 1.3rem; color: var(--text-main); font-family: 'Playfair Display', serif;">${tutor.name}</h3>
+          <p class="tutor-location" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem;">📍 ${tutor.location}</p>
+        </div>
+        <div class="tutor-rate-badge" style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--accent); color: var(--accent-light); padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">${tutor.rate}/hr</div>
+      </div>
+      
+      <div class="tutor-stats-row" style="display: flex; gap: 0.5rem; font-size: 0.9rem; align-items: center; margin-bottom: 0.75rem;">
+        <span class="tutor-rating" style="color: var(--accent-light); font-weight: 600;">⭐ ${tutor.rating.toFixed(1)}</span>
+        <span class="tutor-reviews" style="color: var(--text-muted);">(${tutor.numReviews} lessons completed)</span>
+      </div>
+      
+      <p class="tutor-bio" style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1rem; min-height: 4.5rem;">${tutor.bio}</p>
+      
+      <div class="tutor-tags-row" style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.25rem;">
+        ${tagsHTML}
+      </div>
+      
+      <div class="tutor-action-row">
+        <button class="level-action-btn book-session-btn" style="width: 100%; justify-content: center; display: flex;">Book Live Practice</button>
+      </div>
+    `;
+
+    card.querySelector('.book-session-btn').addEventListener('click', () => {
+      openBookingModal(tutor);
+    });
+
+    container.appendChild(card);
+  });
+}
+
+function openBookingModal(tutor) {
+  selectedTutor = tutor;
+  selectedDate = null;
+  selectedTime = null;
+
+  document.getElementById('modal-tutor-name').innerText = tutor.name;
+  document.getElementById('modal-tutor-avatar').innerText = tutor.avatar;
+  document.getElementById('modal-tutor-rate').innerText = `${tutor.rate}/hour`;
+  
+  // Reset summary box and button
+  document.getElementById('booking-summary-box').style.display = 'none';
+  document.getElementById('confirm-booking-btn').disabled = true;
+  
+  // Render next 4 days for calendar slots
+  const daysRow = document.getElementById('calendar-days-row');
+  daysRow.innerHTML = '';
+  
+  const today = new Date();
+  const options = { weekday: 'short', day: 'numeric', month: 'short' };
+  
+  for (let i = 1; i <= 4; i++) {
+    const nextDate = new Date(today);
+    nextDate.setDate(today.getDate() + i);
+    
+    const dayBtn = document.createElement('button');
+    dayBtn.className = 'calendar-day-btn';
+    
+    const weekdayName = nextDate.toLocaleDateString('en-US', { weekday: 'short' });
+    const dayOfMonth = nextDate.getDate();
+    
+    dayBtn.innerHTML = `
+      <span class="cal-day-name" style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); display: block;">${weekdayName}</span>
+      <span class="cal-day-num" style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); display: block; margin-top: 0.15rem;">${dayOfMonth}</span>
+    `;
+    
+    const formattedDateString = nextDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    
+    dayBtn.addEventListener('click', () => {
+      document.querySelectorAll('.calendar-day-btn').forEach(b => b.classList.remove('selected'));
+      dayBtn.classList.add('selected');
+      selectedDate = formattedDateString;
+      updateBookingSummary();
+    });
+    
+    daysRow.appendChild(dayBtn);
+  }
+
+  // Render tutor's mock time slots
+  const slotsGrid = document.getElementById('time-slots-grid');
+  slotsGrid.innerHTML = '';
+  
+  tutor.availableTimes.forEach(time => {
+    const slotBtn = document.createElement('button');
+    slotBtn.className = 'time-slot-btn';
+    slotBtn.innerText = time;
+    
+    slotBtn.addEventListener('click', () => {
+      document.querySelectorAll('.time-slot-btn').forEach(b => b.classList.remove('selected'));
+      slotBtn.classList.add('selected');
+      selectedTime = time;
+      updateBookingSummary();
+    });
+    
+    slotsGrid.appendChild(slotBtn);
+  });
+
+  // Open modal overlay
+  document.getElementById('booking-modal').style.display = 'flex';
+}
+
+function updateBookingSummary() {
+  const summaryBox = document.getElementById('booking-summary-box');
+  const summaryTime = document.getElementById('booking-summary-time');
+  const confirmBtn = document.getElementById('confirm-booking-btn');
+
+  if (selectedDate && selectedTime) {
+    summaryTime.innerText = `${selectedDate} at ${selectedTime}`;
+    summaryBox.style.display = 'block';
+    confirmBtn.disabled = false;
+  } else {
+    summaryBox.style.display = 'none';
+    confirmBtn.disabled = true;
+  }
+}
+
+
 // H. Quiz Orchestration
 function startQuiz() {
   // Hide setup screen, show active screen
@@ -1004,4 +1148,45 @@ function setupEventListeners() {
       });
     });
   }
+
+  // Tutor Booking Modal Events
+  const confirmBookingBtn = document.getElementById('confirm-booking-btn');
+  if (confirmBookingBtn) {
+    confirmBookingBtn.addEventListener('click', () => {
+      document.getElementById('booking-modal').style.display = 'none';
+      awardXP(25, true);
+      
+      const successMsg = document.getElementById('success-modal-message');
+      if (successMsg && selectedTutor && selectedDate && selectedTime) {
+        successMsg.innerHTML = `Your 1-hour Igbo lesson with <strong>${selectedTutor.name}</strong> is confirmed for <strong>${selectedDate} at ${selectedTime}</strong>.<br><br>A Google Meet link has been generated and sent to your email. You earned <strong>+25 XP</strong> for booking!`;
+      }
+      
+      document.getElementById('booking-success-modal').style.display = 'flex';
+    });
+  }
+
+  const closeSuccessBtn = document.getElementById('close-success-btn');
+  if (closeSuccessBtn) {
+    closeSuccessBtn.addEventListener('click', () => {
+      document.getElementById('booking-success-modal').style.display = 'none';
+    });
+  }
+
+  const modalCloseBtn = document.getElementById('modal-close-btn');
+  if (modalCloseBtn) {
+    modalCloseBtn.addEventListener('click', () => {
+      document.getElementById('booking-modal').style.display = 'none';
+    });
+  }
+
+  window.addEventListener('click', (e) => {
+    const bookingModal = document.getElementById('booking-modal');
+    const successModal = document.getElementById('booking-success-modal');
+    if (e.target === bookingModal) {
+      bookingModal.style.display = 'none';
+    }
+    if (e.target === successModal) {
+      successModal.style.display = 'none';
+    }
+  });
 }

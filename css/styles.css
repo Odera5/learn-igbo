@@ -1554,6 +1554,9 @@ footer {
     border-radius: var(--border-radius-sm);
     color: var(--accent-light);
   }
+  nav ul li:last-child {
+    grid-column: span 2;
+  }
 
 
 
@@ -1673,4 +1676,153 @@ footer {
   .brand-subtitle {
     display: none;
   }
+}
+
+/* 14. Tutor Directory & Booking Modals */
+.tutors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.tutor-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin-bottom: 0 !important;
+  height: 100%;
+}
+
+.tutor-card::before {
+  background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+}
+
+.tutor-tag {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Modal overlays */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(8, 10, 16, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 0 !important;
+  padding: 2.5rem 2rem 2rem 2rem !important;
+  position: relative;
+  animation: modalScale 0.3s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+}
+
+.modal-content::before {
+  background: linear-gradient(90deg, var(--accent) 0%, var(--primary) 100%);
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 2rem;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 1;
+  transition: var(--transition-smooth);
+}
+
+.modal-close-btn:hover {
+  color: var(--text-main);
+}
+
+/* Calendar Days selection */
+.calendar-days-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.calendar-day-btn {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0.6rem 0.5rem;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  text-align: center;
+}
+
+.calendar-day-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.calendar-day-btn.selected {
+  background: rgba(25, 135, 84, 0.15);
+  border-color: var(--primary-light);
+}
+
+.calendar-day-btn.selected .cal-day-num {
+  color: var(--accent-light) !important;
+}
+
+/* Time slots grid selection */
+.time-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.time-slot-btn {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  padding: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  text-align: center;
+  transition: var(--transition-smooth);
+}
+
+.time-slot-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.time-slot-btn.selected {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--accent);
+  color: var(--text-main);
+}
+
+@keyframes modalScale {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }

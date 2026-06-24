@@ -30,6 +30,7 @@
           <li><a href="#tonetrainer" class="nav-link" data-view="tonetrainer">Tone Trainer</a></li>
           <li><a href="#proverbs" class="nav-link" data-view="proverbs">Proverbs</a></li>
           <li><a href="#quizzes" class="nav-link" data-view="quizzes">Quizzes</a></li>
+          <li><a href="#tutors" class="nav-link" data-view="tutors">Find a Tutor</a></li>
         </ul>
       </nav>
 
@@ -125,6 +126,12 @@
             <h3 style="color: var(--accent); margin-bottom: 0.5rem;">💡 Learn Igbo Tones</h3>
             <p style="font-size: 0.95rem; margin-bottom: 1rem;">Igbo is tonal. The exact same spelling can mean three different things depending on your pitch. Try the <strong>Tone Trainer</strong> in the navbar to practice sounding out pitch waves.</p>
             <a href="#tonetrainer" class="audio-trigger-btn" style="display: inline-block;">Go to Tone Trainer →</a>
+          </div>
+
+          <div class="glass-panel" style="background: linear-gradient(135deg, rgba(15,81,50,0.08) 0%, rgba(22,28,45,0.7) 100%); border: 1px solid rgba(25, 135, 84, 0.25);">
+            <h3 style="color: var(--primary-light); margin-bottom: 0.5rem;">🗣️ Practice Live with Tutors</h3>
+            <p style="font-size: 0.95rem; margin-bottom: 1rem;">Struggling with conversation? Connect with verified native Igbo speakers for 1-on-1 speaking classes. Get custom feedback instantly.</p>
+            <a href="#tutors" class="audio-trigger-btn" style="display: inline-block; border-color: var(--primary-light); color: var(--primary-light); background: rgba(25, 135, 84, 0.05);">Book 1-on-1 Class →</a>
           </div>
         </div>
       </div>
@@ -444,7 +451,69 @@
 
     </section>
 
+    <!-- 9. TUTORS VIEW -->
+    <section id="view-tutors" class="view-section">
+      <div class="glass-panel">
+        <div class="panel-header">
+          <h2>Find a Native Igbo Tutor</h2>
+          <span style="color: var(--text-muted);">Live 1-on-1 speaking practice</span>
+        </div>
+        <p style="margin-bottom: 2rem; max-width: 800px;">Master tone curves, improve conversational confidence, and practice speaking live with native speakers. Choose a verified tutor below to view their calendar and book a session.</p>
+        
+        <div class="tutors-grid" id="tutors-container">
+          <!-- Rendered dynamically from js/app.js -->
+        </div>
+      </div>
+    </section>
+
   </main>
+
+  <!-- Booking Modal Popup -->
+  <div id="booking-modal" class="modal-overlay" style="display: none;">
+    <div class="glass-panel modal-content">
+      <button class="modal-close-btn" id="modal-close-btn" aria-label="Close modal">&times;</button>
+      <div class="modal-header">
+        <span class="avatar-badge" id="modal-tutor-avatar" style="font-size: 2.5rem; margin-right: 1rem;">👩🏾‍🏫</span>
+        <div>
+          <h3 id="modal-tutor-name" style="color: var(--text-main); font-size: 1.4rem;">Tutor Name</h3>
+          <p id="modal-tutor-rate" style="color: var(--accent); font-weight: 600;">$15/hr</p>
+        </div>
+      </div>
+      
+      <div class="modal-body" style="margin-top: 1.25rem;">
+        <p style="font-size: 0.95rem; margin-bottom: 1.25rem;">Select an available time slot for your 1-hour speaking lesson:</p>
+        
+        <!-- Mock Calendar Slots -->
+        <div class="calendar-selection-container">
+          <div class="calendar-days-row" id="calendar-days-row">
+            <!-- Dynamic days -->
+          </div>
+          
+          <div class="time-slots-grid" id="time-slots-grid">
+            <!-- Dynamic time slots -->
+          </div>
+        </div>
+        
+        <div class="booking-summary-box" id="booking-summary-box" style="display: none; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--panel-border); padding: 0.75rem 1rem; border-radius: var(--border-radius-sm); margin-top: 1.25rem; text-align: center;">
+          <p>Selected Lesson Time: <strong id="booking-summary-time" style="color: var(--accent-light);">None</strong></p>
+        </div>
+      </div>
+      
+      <div class="modal-footer" style="margin-top: 1.5rem;">
+        <button class="level-action-btn" id="confirm-booking-btn" style="width: 100%; justify-content: center; display: flex;" disabled>Confirm Lesson Booking</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Success Modal -->
+  <div id="booking-success-modal" class="modal-overlay" style="display: none;">
+    <div class="glass-panel modal-content success-content" style="text-align: center; max-width: 420px; padding: 2.5rem 2rem;">
+      <span style="font-size: 4rem; display: block; margin-bottom: 1rem;">🎉</span>
+      <h3 style="color: var(--accent-light); margin-bottom: 0.75rem;">Booking Confirmed!</h3>
+      <p style="font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem;" id="success-modal-message">Your lesson has been booked. A Google Meet link has been generated and sent to your email.</p>
+      <button class="level-action-btn" id="close-success-btn" style="padding: 0.6rem 2rem; font-size: 1rem; width: 100%; justify-content: center; display: flex;">Awesome</button>
+    </div>
+  </div>
 
   <!-- App Footer -->
   <footer>

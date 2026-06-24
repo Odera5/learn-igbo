@@ -543,5 +543,43 @@ const IGBO_DATA = {
       answer: 'O na-eri nri',
       explanation: 'The marker "na-" indicates present continuous tense in Igbo: "O na-eri nri".'
     }
+  ],
+  tutors: [
+    {
+      id: 'tutor-1',
+      name: 'Chidi Okoro',
+      avatar: '👨🏾‍🏫',
+      location: 'Enugu, Nigeria',
+      rate: '$15/hr',
+      rating: 4.9,
+      numReviews: 42,
+      bio: 'Certified Igbo linguist with 5+ years of experience helping diaspora students master tone curves and conversational flow.',
+      tags: ['Tone Specialist', 'Adults', 'Intermediate'],
+      availableTimes: ['09:00 AM', '11:00 AM', '02:00 PM', '04:00 PM']
+    },
+    {
+      id: 'tutor-2',
+      name: 'Amara Nwosu',
+      avatar: '👩🏾‍🏫',
+      location: 'Lagos, Nigeria',
+      rate: '$18/hr',
+      rating: 5.0,
+      numReviews: 29,
+      bio: 'Native speaker specializing in kids and complete beginners. I make learning Igbo fun, engaging, and culturally rich!',
+      tags: ['Kids Friendly', 'Beginners', 'Culture Guide'],
+      availableTimes: ['10:00 AM', '01:00 PM', '03:00 PM', '05:00 PM']
+    },
+    {
+      id: 'tutor-3',
+      name: 'Obinna Diala',
+      avatar: '👨🏾‍🎓',
+      location: 'Owerri, Nigeria',
+      rate: '$16/hr',
+      rating: 4.8,
+      numReviews: 18,
+      bio: 'Grammar and writing specialist. If you want to master sentence structure, verb conjugations, and essay writing, let’s talk.',
+      tags: ['Grammar Expert', 'Writing', 'Conversational'],
+      availableTimes: ['08:00 AM', '12:00 PM', '02:00 PM', '06:00 PM']
+    }
   ]
 };
