@@ -1826,3 +1826,239 @@ footer {
   from { opacity: 0; transform: scale(0.95) translateY(10px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
+
+/* 10. Voice Recorder / Contribution Styles */
+.recorder-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .recorder-layout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.recorder-controls-card {
+  padding: 1.5rem;
+  background: rgba(22, 28, 45, 0.4);
+  border: 1px solid var(--panel-border);
+}
+
+.mic-record-btn {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--panel-bg) 0%, rgba(22,28,45,0.9) 100%);
+  border: 3px solid var(--panel-border);
+  color: var(--text-main);
+  font-size: 2.2rem;
+  cursor: pointer;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: var(--shadow-premium);
+  position: relative;
+}
+
+.mic-record-btn:hover {
+  border-color: var(--accent);
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.3);
+}
+
+.mic-record-btn.recording {
+  background: linear-gradient(135deg, var(--terracotta) 0%, #a83232 100%);
+  border-color: var(--text-main);
+  animation: micPulse 1.5s infinite;
+  transform: scale(0.98);
+}
+
+@keyframes micPulse {
+  0% { box-shadow: 0 0 0 0 rgba(212, 93, 59, 0.7); }
+  70% { box-shadow: 0 0 0 20px rgba(212, 93, 59, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(212, 93, 59, 0); }
+}
+
+.live-visualizer-container {
+  display: flex;
+}
+
+.visualizer-bar {
+  width: 4px;
+  height: 8px;
+  background: var(--text-muted);
+  border-radius: 2px;
+  transition: height 0.15s ease;
+}
+
+.mic-record-btn.recording ~ .live-visualizer-container .visualizer-bar {
+  background: var(--terracotta);
+  animation: visualizerAnim 0.7s infinite alternate ease-in-out;
+}
+
+.mic-record-btn.recording ~ .live-visualizer-container .visualizer-bar:nth-child(2n) {
+  animation-delay: 0.15s;
+}
+.mic-record-btn.recording ~ .live-visualizer-container .visualizer-bar:nth-child(3n) {
+  animation-delay: 0.3s;
+}
+.mic-record-btn.recording ~ .live-visualizer-container .visualizer-bar:nth-child(4n) {
+  animation-delay: 0.45s;
+}
+
+@keyframes visualizerAnim {
+  0% { height: 6px; }
+  100% { height: 35px; }
+}
+
+.dataset-list-card {
+  background: rgba(22, 28, 45, 0.4);
+  border: 1px solid var(--panel-border);
+  padding: 1.5rem;
+}
+
+.dataset-table-wrapper {
+  border-radius: var(--border-radius-sm);
+  background: rgba(12, 15, 23, 0.4);
+  border: 1px solid var(--panel-border);
+}
+
+.data-table th {
+  position: sticky;
+  top: 0;
+  background: #0f131f;
+  z-index: 5;
+}
+
+/* Quick Record Micro Button */
+.quick-record-mic-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  transition: var(--transition-smooth);
+  margin-left: 0.25rem;
+}
+
+.quick-record-mic-btn:hover {
+  background: rgba(212, 93, 59, 0.1);
+  border-color: var(--terracotta);
+  color: var(--terracotta);
+  transform: scale(1.1);
+}
+
+.quick-record-mic-btn.has-rec {
+  background: rgba(25, 135, 84, 0.1);
+  border-color: var(--primary-light);
+  color: var(--primary-light);
+}
+
+.quick-record-mic-btn.recording-active {
+  background: var(--terracotta) !important;
+  color: var(--text-main) !important;
+  animation: micPulseSmall 1s infinite alternate;
+}
+
+@keyframes micPulseSmall {
+  from { transform: scale(1); box-shadow: 0 0 4px rgba(212, 93, 59, 0.5); }
+  to { transform: scale(1.15); box-shadow: 0 0 12px rgba(212, 93, 59, 0.9); }
+}
+
+/* SVG Tonal Contour Wave styles */
+.tone-contour-svg-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.tone-contour-wave-path {
+  fill: none;
+  stroke: url(#tone-wave-gradient);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.5));
+}
+
+.tone-contour-wave-path-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.03);
+  stroke-width: 2;
+  stroke-dasharray: 4 6;
+}
+
+.tone-contour-canvas-container {
+  position: relative;
+  height: 240px;
+  background: rgba(12, 15, 23, 0.7);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--border-radius-md);
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  overflow: hidden;
+  padding: 0 2rem;
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.tone-contour-node {
+  position: relative;
+  z-index: 2;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--text-main);
+  background: rgba(22, 28, 45, 0.9);
+  border: 2px solid var(--panel-border);
+  box-shadow: var(--shadow-premium);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.tone-contour-node.pitch-high {
+  transform: translateY(-50px);
+  border-color: var(--accent);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.25);
+}
+
+.tone-contour-node.pitch-low {
+  transform: translateY(50px);
+  border-color: var(--terracotta);
+  box-shadow: 0 0 15px rgba(212, 93, 59, 0.25);
+}
+
+.tone-contour-node.pitch-down {
+  transform: translateY(0);
+  border-color: #64748b;
+  box-shadow: 0 0 15px rgba(100, 116, 139, 0.25);
+}
+
+.tone-contour-node.active-pitch {
+  transform: scale(1.25) !important;
+  background: var(--text-main) !important;
+  color: var(--text-dark) !important;
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.8) !important;
+  z-index: 10;
+}
+

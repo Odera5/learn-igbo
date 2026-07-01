@@ -180,10 +180,14 @@ function setupRouting() {
       renderDashboard();
     } else if (viewName === 'lessons') {
       renderLessonsSidebar();
+      setTimeout(updateQuickRecordButtonStates, 100);
     } else if (viewName === 'vocabulary') {
       renderVocabCard();
+      setTimeout(updateQuickRecordButtonStates, 100);
     } else if (viewName === 'tutors') {
       renderTutors();
+    } else if (viewName === 'contribute') {
+      renderContributeView();
     }
     
     // Scroll to top of content
@@ -511,6 +515,7 @@ function selectLesson(lessonId) {
         <div class="card-actions">
           <button class="round-audio-btn spec-speak-btn" title="Speak Word">🔊</button>
           <button class="round-audio-btn tone-btn spec-tone-btn" title="Play Tones" style="color: var(--terracotta); border-color: rgba(212,93,59,0.3)">🎵</button>
+          <button class="quick-record-mic-btn spec-rec-btn" title="Record Pronunciation">🎙️</button>
         </div>
       `;
 
@@ -528,8 +533,14 @@ function selectLesson(lessonId) {
         setTimeout(() => card.classList.remove('audio-playing'), 400);
       });
 
+      card.querySelector('.spec-rec-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        triggerQuickRecord(vocab.word);
+      });
+
       vocabContainer.appendChild(card);
     });
+    setTimeout(updateQuickRecordButtonStates, 100);
   } else {
     vocabContainer.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">No focus vocabulary for this lesson.</p>';
   }
@@ -571,11 +582,21 @@ function renderVocabCard() {
   // Hook audio buttons
   const speakBtn = document.getElementById('card-speak-btn');
   const toneBtn = document.getElementById('card-tone-btn');
+  const recBtn = document.getElementById('card-rec-btn');
 
   const newSpeakBtn = speakBtn.cloneNode(true);
   const newToneBtn = toneBtn.cloneNode(true);
   speakBtn.parentNode.replaceChild(newSpeakBtn, speakBtn);
   toneBtn.parentNode.replaceChild(newToneBtn, toneBtn);
+
+  if (recBtn) {
+    const newRecBtn = recBtn.cloneNode(true);
+    recBtn.parentNode.replaceChild(newRecBtn, recBtn);
+    newRecBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Stop flip trigger
+      triggerQuickRecord(currentItem.word);
+    });
+  }
 
   newSpeakBtn.addEventListener('click', (e) => {
     e.stopPropagation(); // Stop flip trigger
@@ -601,6 +622,8 @@ function renderVocabCard() {
       }
     });
   });
+  
+  setTimeout(updateQuickRecordButtonStates, 100);
 }
 
 
@@ -696,10 +719,22 @@ function renderToneContourGraph(word, pattern) {
   const container = document.getElementById('tone-nodes-container');
   container.innerHTML = '';
 
-  // Syllable separation estimate (simple for visual)
-  // Split vowels/consonants roughly, or just display letter nodes matching pattern length
   const syllables = getSyllableNames(word, pattern.length);
 
+  // Render SVG background container
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "tone-contour-svg-container");
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="tone-wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="var(--accent)" />
+        <stop offset="100%" stop-color="var(--terracotta)" />
+      </linearGradient>
+    </defs>
+  `;
+  container.appendChild(svg);
+
+  // Build the node elements
   pattern.forEach((toneVal, index) => {
     const node = document.createElement('div');
     let pitchClass = 'pitch-down'; // Neutral
@@ -720,6 +755,43 @@ function renderToneContourGraph(word, pattern) {
     `;
     container.appendChild(node);
   });
+
+  // Calculate coordinates and draw paths dynamically once elements are positioned
+  setTimeout(() => {
+    const points = [];
+    const nodes = container.querySelectorAll('.tone-contour-node');
+    
+    nodes.forEach((node) => {
+      const x = node.offsetLeft + (node.clientWidth / 2);
+      const y = node.offsetTop + (node.clientHeight / 2);
+      points.push({ x, y });
+    });
+
+    if (points.length > 0) {
+      const bgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      bgPath.setAttribute("class", "tone-contour-wave-path-bg");
+      
+      const mainPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      mainPath.setAttribute("class", "tone-contour-wave-path");
+
+      let d = `M ${points[0].x} ${points[0].y}`;
+      for (let i = 0; i < points.length - 1; i++) {
+        const p0 = points[i];
+        const p1 = points[i+1];
+        const cp1x = p0.x + (p1.x - p0.x) / 2;
+        const cp1y = p0.y;
+        const cp2x = p0.x + (p1.x - p0.x) / 2;
+        const cp2y = p1.y;
+        d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p1.x} ${p1.y}`;
+      }
+
+      bgPath.setAttribute("d", d);
+      mainPath.setAttribute("d", d);
+      
+      svg.appendChild(bgPath);
+      svg.appendChild(mainPath);
+    }
+  }, 50);
 }
 
 // Simple syllable name parser
@@ -1189,4 +1261,554 @@ function setupEventListeners() {
       successModal.style.display = 'none';
     }
   });
+
+  // Download ZIP listener
+  const zipBtn = document.getElementById('download-dataset-zip-btn');
+  if (zipBtn) {
+    zipBtn.addEventListener('click', downloadDatasetZip);
+  }
+}
+
+// ==========================================
+// 5. INDEXEDDB DATABASE MANAGER (VOICE DATASET)
+// ==========================================
+const DB_NAME = 'muta_igbo_db';
+const DB_VERSION = 1;
+const STORE_NAME = 'recordings';
+
+// In-memory fallback database in case IndexedDB is blocked (e.g. file:// protocol or private browsing)
+const MEMORY_STORAGE = new Map();
+
+function getDB() {
+  return new Promise((resolve, reject) => {
+    if (typeof indexedDB === 'undefined') {
+      reject(new Error("IndexedDB is not supported in this browser environment."));
+      return;
+    }
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'word' });
+      }
+    };
+    request.onsuccess = (e) => resolve(e.target.result);
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+async function saveAudioRecording(word, blob, translation) {
+  const normalizedWord = word.toLowerCase().trim();
+  try {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const data = {
+        word: normalizedWord,
+        blob: blob,
+        translation: translation,
+        date: new Date().toLocaleDateString()
+      };
+      const request = store.put(data);
+      request.onsuccess = () => resolve(true);
+      request.onerror = (e) => reject(e.target.error);
+    });
+  } catch (dbError) {
+    console.warn("IndexedDB save failed. Saving to local memory cache instead:", dbError);
+    MEMORY_STORAGE.set(normalizedWord, {
+      word: normalizedWord,
+      blob: blob,
+      translation: translation,
+      date: new Date().toLocaleDateString()
+    });
+    return true;
+  }
+}
+
+async function getAudioRecording(word) {
+  const normalizedWord = word.toLowerCase().trim();
+  try {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get(normalizedWord);
+      request.onsuccess = (e) => resolve(e.target.result);
+      request.onerror = (e) => reject(e.target.error);
+    });
+  } catch (dbError) {
+    console.warn("IndexedDB read failed. Reading from local memory cache instead:", dbError);
+    return MEMORY_STORAGE.get(normalizedWord) || null;
+  }
+}
+
+async function deleteAudioRecording(word) {
+  const normalizedWord = word.toLowerCase().trim();
+  try {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.delete(normalizedWord);
+      request.onsuccess = () => resolve(true);
+      request.onerror = (e) => reject(e.target.error);
+    });
+  } catch (dbError) {
+    console.warn("IndexedDB delete failed. Deleting from local memory cache instead:", dbError);
+    return MEMORY_STORAGE.delete(normalizedWord);
+  }
+}
+
+async function getAllAudioRecordings() {
+  try {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.getAll();
+      request.onsuccess = (e) => resolve(e.target.result);
+      request.onerror = (e) => reject(e.target.error);
+    });
+  } catch (dbError) {
+    console.warn("IndexedDB fetch all failed. Returning local memory cache items:", dbError);
+    return Array.from(MEMORY_STORAGE.values());
+  }
+}
+
+// ==========================================
+// 6. VOICE RECORDER CONTROLLER
+// ==========================================
+let mediaRecorder = null;
+let audioChunks = [];
+let recordedBlob = null;
+let recordingTimerInterval = null;
+let recordingSeconds = 0;
+let recordingStream = null;
+
+async function renderContributeView() {
+  populateRecorderWordDropdown();
+  await renderRecordingsTable();
+  
+  // Wire up the mic button once
+  const micBtn = document.getElementById('record-mic-btn');
+  if (micBtn) {
+    const newMicBtn = micBtn.cloneNode(true);
+    micBtn.parentNode.replaceChild(newMicBtn, micBtn);
+    
+    newMicBtn.addEventListener('click', () => {
+      if (newMicBtn.classList.contains('recording')) {
+        stopRecording();
+      } else {
+        startRecording();
+      }
+    });
+  }
+
+  // Playback buttons
+  const playBtn = document.getElementById('playback-recorded-btn');
+  if (playBtn) {
+    const newPlayBtn = playBtn.cloneNode(true);
+    playBtn.parentNode.replaceChild(newPlayBtn, playBtn);
+    newPlayBtn.addEventListener('click', playRecordedAudio);
+  }
+
+  const discardBtn = document.getElementById('discard-recorded-btn');
+  if (discardBtn) {
+    const newDiscardBtn = discardBtn.cloneNode(true);
+    discardBtn.parentNode.replaceChild(newDiscardBtn, discardBtn);
+    newDiscardBtn.addEventListener('click', resetRecorderState);
+  }
+
+  const saveBtn = document.getElementById('save-recorded-btn');
+  if (saveBtn) {
+    const newSaveBtn = saveBtn.cloneNode(true);
+    saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+    newSaveBtn.addEventListener('click', saveRecordedAudio);
+  }
+}
+
+function populateRecorderWordDropdown() {
+  const select = document.getElementById('recorder-word-select');
+  if (!select) return;
+  
+  select.innerHTML = '<option value="">-- Choose a word --</option>';
+
+  const allWords = new Set();
+  const wordMap = new Map();
+
+  // Add words from Alphabet
+  IGBO_DATA.alphabet.forEach(item => {
+    const wordKey = item.example.toLowerCase().trim();
+    if (!allWords.has(wordKey)) {
+      allWords.add(wordKey);
+      wordMap.set(wordKey, {
+        word: item.example,
+        translation: item.translation,
+        phonetics: `[${item.letter}]`
+      });
+    }
+  });
+
+  // Add words from Lessons vocab
+  IGBO_DATA.levels.forEach(level => {
+    level.lessons.forEach(lesson => {
+      if (lesson.vocabulary) {
+        lesson.vocabulary.forEach(vocab => {
+          const wordKey = vocab.word.toLowerCase().trim();
+          if (!allWords.has(wordKey)) {
+            allWords.add(wordKey);
+            wordMap.set(wordKey, {
+              word: vocab.word,
+              translation: vocab.translation,
+              phonetics: vocab.phonetics
+            });
+          }
+        });
+      }
+    });
+  });
+
+  // Add words from flashcard decks
+  Object.keys(IGBO_DATA.vocabDecks).forEach(deckName => {
+    IGBO_DATA.vocabDecks[deckName].forEach(vocab => {
+      const wordKey = vocab.word.toLowerCase().trim();
+      if (!allWords.has(wordKey)) {
+        allWords.add(wordKey);
+        wordMap.set(wordKey, {
+          word: vocab.word,
+          translation: vocab.translation,
+          phonetics: vocab.phonetics
+        });
+      }
+    });
+  });
+
+  // Sort and append options
+  const sortedWords = Array.from(wordMap.values()).sort((a, b) => a.word.localeCompare(b.word));
+  sortedWords.forEach(item => {
+    const option = document.createElement('option');
+    option.value = item.word;
+    option.setAttribute('data-translation', item.translation);
+    option.setAttribute('data-phonetics', item.phonetics);
+    option.innerText = `${item.word} (${item.translation})`;
+    select.appendChild(option);
+  });
+
+  // Remove existing listeners and add new change listener
+  const newSelect = select.cloneNode(true);
+  select.parentNode.replaceChild(newSelect, select);
+
+  newSelect.addEventListener('change', () => {
+    const selectedOption = newSelect.options[newSelect.selectedIndex];
+    const infoCard = document.getElementById('recorder-word-info-card');
+    
+    if (newSelect.value === "") {
+      infoCard.style.display = 'none';
+      resetRecorderState();
+    } else {
+      infoCard.style.display = 'block';
+      document.getElementById('rec-target-word').innerText = newSelect.value;
+      document.getElementById('rec-target-ph').innerText = selectedOption.getAttribute('data-phonetics');
+      document.getElementById('rec-target-trans').innerText = selectedOption.getAttribute('data-translation');
+      resetRecorderState();
+    }
+  });
+}
+
+async function startRecording() {
+  const select = document.getElementById('recorder-word-select');
+  if (!select || select.value === "") {
+    alert("Please select a word to record first.");
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recordingStream = stream;
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) {
+        audioChunks.push(e.data);
+      }
+    };
+
+    mediaRecorder.onstop = () => {
+      recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      document.getElementById('recorder-playback-panel').style.display = 'block';
+      document.getElementById('record-status-label').innerText = "Recording captured successfully!";
+      
+      // Stop the visualizer
+      document.getElementById('live-visualizer-container').style.display = 'none';
+      
+      // Clean up track streams
+      if (recordingStream) {
+        recordingStream.getTracks().forEach(track => track.stop());
+      }
+    };
+
+    mediaRecorder.start();
+    
+    // UI feedback
+    const micBtn = document.getElementById('record-mic-btn');
+    if (micBtn) micBtn.classList.add('recording');
+    document.getElementById('record-status-label').innerText = "Recording... Click again to stop.";
+    
+    // Timer start
+    recordingSeconds = 0;
+    const timerEl = document.getElementById('record-timer');
+    timerEl.innerText = "00:00";
+    timerEl.style.display = 'block';
+    
+    // Show visualizer
+    document.getElementById('live-visualizer-container').style.display = 'flex';
+
+    clearInterval(recordingTimerInterval);
+    recordingTimerInterval = setInterval(() => {
+      recordingSeconds++;
+      const mins = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
+      const secs = String(recordingSeconds % 60).padStart(2, '0');
+      timerEl.innerText = `${mins}:${secs}`;
+    }, 1000);
+
+  } catch (error) {
+    console.error("Microphone access denied or error:", error);
+    alert("Could not start recording. Please make sure you grant microphone access.");
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+  }
+  
+  const micBtn = document.getElementById('record-mic-btn');
+  if (micBtn) micBtn.classList.remove('recording');
+  
+  clearInterval(recordingTimerInterval);
+  document.getElementById('record-timer').style.display = 'none';
+}
+
+function resetRecorderState() {
+  recordedBlob = null;
+  document.getElementById('recorder-playback-panel').style.display = 'none';
+  document.getElementById('record-status-label').innerText = "Click mic to start recording";
+  
+  const timer = document.getElementById('record-timer');
+  if (timer) timer.style.display = 'none';
+  
+  const viz = document.getElementById('live-visualizer-container');
+  if (viz) viz.style.display = 'none';
+  
+  const micBtn = document.getElementById('record-mic-btn');
+  if (micBtn) micBtn.classList.remove('recording');
+  
+  clearInterval(recordingTimerInterval);
+}
+
+function playRecordedAudio() {
+  if (recordedBlob) {
+    const audioUrl = URL.createObjectURL(recordedBlob);
+    const audio = new Audio(audioUrl);
+    audio.play();
+  }
+}
+
+async function saveRecordedAudio() {
+  const select = document.getElementById('recorder-word-select');
+  if (!select || select.value === "") return;
+
+  const word = select.value;
+  const translation = select.options[select.selectedIndex].getAttribute('data-translation');
+  
+  if (!recordedBlob) return;
+
+  try {
+    await saveAudioRecording(word, recordedBlob, translation);
+    
+    // Award XP
+    awardXP(15, true);
+    
+    // Reset state and re-render recordings table
+    resetRecorderState();
+    select.value = "";
+    document.getElementById('recorder-word-info-card').style.display = 'none';
+    
+    await renderRecordingsTable();
+    updateQuickRecordButtonStates();
+  } catch (error) {
+    console.error("Save recording error:", error);
+    alert("Could not save recording.");
+  }
+}
+
+async function renderRecordingsTable() {
+  const tbody = document.getElementById('dataset-recordings-tbody');
+  const countVal = document.getElementById('dataset-count-val');
+  const zipBtn = document.getElementById('download-dataset-zip-btn');
+  
+  if (!tbody) return;
+
+  const recordings = await getAllAudioRecordings();
+  if (countVal) countVal.innerText = recordings.length;
+
+  if (recordings.length > 0) {
+    if (zipBtn) zipBtn.style.display = 'inline-block';
+    tbody.innerHTML = '';
+    
+    recordings.forEach(rec => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:600; color:var(--text-main); text-transform:capitalize;">${rec.word}</td>
+        <td style="color:var(--text-muted);">${rec.translation}</td>
+        <td style="font-size:0.85rem; color:var(--text-muted);">${rec.date}</td>
+        <td style="text-align: right;">
+          <button class="round-audio-btn table-play-btn" style="padding:0.25rem 0.5rem; font-size:0.85rem; margin-right:0.25rem;" title="Play">▶️</button>
+          <button class="round-audio-btn table-dl-btn" style="padding:0.25rem 0.5rem; font-size:0.85rem; margin-right:0.25rem;" title="Download File">💾</button>
+          <button class="round-audio-btn table-del-btn" style="padding:0.25rem 0.5rem; font-size:0.85rem; border-color:rgba(220,53,69,0.3); color:var(--error);" title="Delete">🗑️</button>
+        </td>
+      `;
+
+      tr.querySelector('.table-play-btn').addEventListener('click', () => {
+        const audioUrl = URL.createObjectURL(rec.blob);
+        new Audio(audioUrl).play();
+      });
+
+      tr.querySelector('.table-dl-btn').addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(rec.blob);
+        link.download = `${rec.word.toLowerCase().replace(/\s+/g, '-')}.webm`;
+        link.click();
+      });
+
+      tr.querySelector('.table-del-btn').addEventListener('click', async () => {
+        if (confirm(`Delete your pronunciation recording for "${rec.word}"?`)) {
+          await deleteAudioRecording(rec.word);
+          await renderRecordingsTable();
+          updateQuickRecordButtonStates();
+        }
+      });
+
+      tbody.appendChild(tr);
+    });
+  } else {
+    if (zipBtn) zipBtn.style.display = 'none';
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">No custom recordings saved yet. Select a word on the left to start!</td>
+      </tr>
+    `;
+  }
+}
+
+function triggerQuickRecord(word) {
+  window.location.hash = `#contribute`;
+  setTimeout(() => {
+    const select = document.getElementById('recorder-word-select');
+    if (select) {
+      select.value = word;
+      select.dispatchEvent(new Event('change'));
+    }
+  }, 100);
+}
+
+async function updateQuickRecordButtonStates() {
+  const saved = await getAllAudioRecordings();
+  const savedWords = new Set(saved.map(item => item.word.toLowerCase().trim()));
+
+  // Update card buttons inside lessons
+  document.querySelectorAll('.spec-rec-btn').forEach(btn => {
+    const card = btn.closest('.vocab-practice-card');
+    if (card) {
+      const word = card.querySelector('.card-vocab-word').innerText.trim().toLowerCase();
+      if (savedWords.has(word)) {
+        btn.classList.add('has-rec');
+        btn.title = "Pronunciation recorded! Click to re-record.";
+      } else {
+        btn.classList.remove('has-rec');
+        btn.title = "Record custom pronunciation";
+      }
+    }
+  });
+
+  // Update card button inside vocabulary flashcard
+  const flashcardRecBtn = document.getElementById('card-rec-btn');
+  if (flashcardRecBtn) {
+    const wordVal = document.getElementById('card-word-val');
+    if (wordVal) {
+      const currentWord = wordVal.innerText.trim().toLowerCase();
+      if (savedWords.has(currentWord)) {
+        flashcardRecBtn.classList.add('has-rec');
+        flashcardRecBtn.title = "Pronunciation recorded! Click to re-record.";
+      } else {
+        flashcardRecBtn.classList.remove('has-rec');
+        flashcardRecBtn.title = "Record custom pronunciation";
+      }
+    }
+  }
+}
+
+async function downloadDatasetZip() {
+  const recordings = await getAllAudioRecordings();
+  if (recordings.length === 0) return;
+
+  const btn = document.getElementById('download-dataset-zip-btn');
+  const originalText = btn.innerText;
+
+  // Load JSZip dynamically if not loaded
+  if (typeof JSZip === 'undefined') {
+    btn.innerText = "Loading ZIP engine...";
+    btn.disabled = true;
+    try {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    } catch (e) {
+      console.error("Failed to load JSZip:", e);
+      alert("Failed to load ZIP library. Check internet connection.");
+      btn.innerText = originalText;
+      btn.disabled = false;
+      return;
+    }
+  }
+
+  btn.innerText = "Creating ZIP...";
+  btn.disabled = true;
+
+  try {
+    const zip = new JSZip();
+    const audioFolder = zip.folder("audio");
+    const metadata = [];
+
+    recordings.forEach(rec => {
+      const filename = `${rec.word.toLowerCase().replace(/\s+/g, '-')}.webm`;
+      audioFolder.file(filename, rec.blob);
+      metadata.push({
+        word: rec.word,
+        translation: rec.translation,
+        date_recorded: rec.date,
+        file: `audio/${filename}`
+      });
+    });
+
+    zip.file("metadata.json", JSON.stringify(metadata, null, 2));
+
+    const content = await zip.generateAsync({ type: "blob" });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(content);
+    link.download = `igbo_voice_dataset_${new Date().toISOString().slice(0, 10)}.zip`;
+    link.click();
+  } catch (err) {
+    console.error("Failed to generate zip dataset:", err);
+    alert("Could not generate ZIP file.");
+  } finally {
+    btn.innerText = "📦 Download Dataset (ZIP)";
+    btn.disabled = false;
+  }
 }

@@ -165,71 +165,93 @@ class IgboAudioEngine {
 
 
 
+  async getCustomVoiceBlob(word) {
+    return new Promise((resolve) => {
+      try {
+        const request = indexedDB.open('muta_igbo_db', 1);
+        request.onsuccess = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('recordings')) {
+            resolve(null);
+            return;
+          }
+          const transaction = db.transaction('recordings', 'readonly');
+          const store = transaction.objectStore('recordings');
+          const getReq = store.get(word.toLowerCase().trim());
+          getReq.onsuccess = (ev) => {
+            resolve(ev.target.result ? ev.target.result.blob : null);
+          };
+          getReq.onerror = () => resolve(null);
+        };
+        request.onerror = () => resolve(null);
+      } catch (err) {
+        resolve(null);
+      }
+    });
+  }
+
   async speakText(text, rate = 0.8) {
-if (!text) return false;
+    if (!text) return false;
 
-// Stop any current speech
-if (this.synth) {
-this.synth.cancel();
-}
+    // Stop any current speech
+    if (this.synth) {
+      this.synth.cancel();
+    }
 
-const audioFile = this.createAudioFileName(text);
+    const audioFile = this.createAudioFileName(text);
 
-try {
-const audio = new Audio(`/audio/${audioFile}.mp3`);
+    // 1. Try to play pre-recorded native mp3 assets
+    try {
+      const audio = new Audio(`/audio/${audioFile}.mp3`);
+      await new Promise((resolve, reject) => {
+        audio.addEventListener("canplaythrough", resolve, { once: true });
+        audio.addEventListener("error", reject, { once: true });
+        audio.load();
+      });
+      await audio.play();
+      return true;
+    } catch (error) {
+      // Audio asset not found, proceed to custom database check
+    }
 
-```
-await new Promise((resolve, reject) => {
-  audio.addEventListener("canplaythrough", resolve, {
-    once: true,
-  });
+    // 2. Try to play custom voice recordings in IndexedDB
+    try {
+      const customBlob = await this.getCustomVoiceBlob(text);
+      if (customBlob) {
+        const audioUrl = URL.createObjectURL(customBlob);
+        const audio = new Audio(audioUrl);
+        await audio.play();
+        return true;
+      }
+    } catch (customError) {
+      console.warn("Failed to check or play custom voice recording:", customError);
+    }
 
-  audio.addEventListener("error", reject, {
-    once: true,
-  });
+    // 3. Fall back to speech synthesis TTS
+    return this.speakWithTTS(text, rate);
+  }
 
-  audio.load();
-});
+  speakWithTTS(text, rate = 0.8) {
+    if (!this.synth) {
+      console.warn("Speech synthesis not supported.");
+      return false;
+    }
 
-await audio.play();
-return true;
-```
+    const utterance = new SpeechSynthesisUtterance(text);
 
-} catch (error) {
-console.warn(
-`Native audio not found for "${text}". Falling back to TTS.`
-);
+    if (this.voice) {
+      utterance.voice = this.voice;
+      utterance.lang = this.voice.lang;
+    } else {
+      utterance.lang = "ig-NG";
+    }
 
-```
-return this.speakWithTTS(text, rate);
-```
+    utterance.rate = rate;
+    utterance.pitch = 1.0;
 
-}
-}
-
-
-speakWithTTS(text, rate = 0.8) {
-if (!this.synth) {
-console.warn("Speech synthesis not supported.");
-return false;
-}
-
-const utterance = new SpeechSynthesisUtterance(text);
-
-if (this.voice) {
-utterance.voice = this.voice;
-utterance.lang = this.voice.lang;
-} else {
-utterance.lang = "ig-NG";
-}
-
-utterance.rate = rate;
-utterance.pitch = 1.0;
-
-this.synth.speak(utterance);
-
-return true;
-}
+    this.synth.speak(utterance);
+    return true;
+  }
 
 createAudioFileName(text) {
 return text

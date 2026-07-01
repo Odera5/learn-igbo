@@ -31,6 +31,7 @@
           <li><a href="#proverbs" class="nav-link" data-view="proverbs">Proverbs</a></li>
           <li><a href="#quizzes" class="nav-link" data-view="quizzes">Quizzes</a></li>
           <li><a href="#tutors" class="nav-link" data-view="tutors">Find a Tutor</a></li>
+          <li><a href="#contribute" class="nav-link" data-view="contribute">Voice Recorder</a></li>
         </ul>
       </nav>
 
@@ -263,6 +264,7 @@
                 <div style="display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1rem;">
                   <button id="card-speak-btn" class="round-audio-btn" title="Spoken pronunciation">🔊</button>
                   <button id="card-tone-btn" class="round-audio-btn tone-btn" title="Tone melody" style="color: var(--terracotta); border-color: rgba(212, 93, 59, 0.4);">🎵</button>
+                  <button id="card-rec-btn" class="quick-record-mic-btn" title="Record Pronunciation">🎙️</button>
                 </div>
                 <div class="card-flip-prompt">Click to reveal translation</div>
               </div>
@@ -462,6 +464,101 @@
         
         <div class="tutors-grid" id="tutors-container">
           <!-- Rendered dynamically from js/app.js -->
+        </div>
+      </div>
+    </section>
+    <!-- 10. VOICE RECORDER / CONTRIBUTIONS VIEW -->
+    <section id="view-contribute" class="view-section">
+      <div class="glass-panel">
+        <div class="panel-header">
+          <h2>Voice Recorder & Dataset Builder</h2>
+          <span style="color: var(--text-muted);">Record native pronunciations and build the Igbo voice dataset</span>
+        </div>
+        <p style="margin-bottom: 1.5rem;">Build your local dataset to train native accent voice models. Select any vocabulary word, record its pronunciation, and save it. Custom recordings are stored securely in your browser and automatically override default TTS voices.</p>
+        
+        <div class="recorder-layout-grid">
+          <!-- Left Control Panel -->
+          <div class="glass-panel recorder-controls-card">
+            <h3>Record Pronunciation</h3>
+            
+            <div class="input-selection-group" style="margin: 1.25rem 0 1rem 0;">
+              <label for="recorder-word-select" style="display:block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.95rem; color: var(--accent-light);">Select Word to Record</label>
+              <select id="recorder-word-select" style="width:100%; padding: 0.7rem; font-size: 1rem; border-radius: var(--border-radius-sm); background: var(--bg-color); color: var(--text-main); border: 1px solid var(--panel-border); outline: none;">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <!-- Visual target word info -->
+            <div id="recorder-word-info-card" class="recorder-target-info-card" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid var(--panel-border); padding: 1rem; border-radius: var(--border-radius-sm); margin-bottom: 1.25rem; text-align: center;">
+              <div style="font-size: 1.8rem; font-weight: 700; color: var(--text-main); line-height: 1.2;" id="rec-target-word">Ewu</div>
+              <div style="font-size: 0.95rem; color: var(--text-muted); margin-top: 0.25rem;" id="rec-target-ph">[é-wù]</div>
+              <div style="font-size: 1rem; color: var(--accent); margin-top: 0.35rem; font-weight: 500;" id="rec-target-trans">Goat</div>
+            </div>
+            
+            <!-- Record and Status Actions -->
+            <div class="record-button-container" style="text-align: center; margin: 1.5rem 0;">
+              <button id="record-mic-btn" class="mic-record-btn" title="Start Recording">
+                <span class="mic-icon">🎙️</span>
+              </button>
+              <div id="record-status-label" style="margin-top: 0.75rem; font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">Click mic to start recording</div>
+              
+              <!-- Simple Recording Timer -->
+              <div id="record-timer" style="font-family: monospace; font-size: 1.5rem; color: var(--terracotta); margin-top: 0.5rem; display: none;">00:00</div>
+            </div>
+
+            <!-- Live waveform visualizer representation -->
+            <div class="live-visualizer-container" id="live-visualizer-container" style="display: none; height: 40px; margin-bottom: 1.25rem; align-items: center; justify-content: center; gap: 6px;">
+              <div class="visualizer-bar"></div>
+              <div class="visualizer-bar"></div>
+              <div class="visualizer-bar"></div>
+              <div class="visualizer-bar"></div>
+              <div class="visualizer-bar"></div>
+              <div class="visualizer-bar"></div>
+              <div class="visualizer-bar"></div>
+              <div class="visualizer-bar"></div>
+            </div>
+
+            <!-- Playback & Save options -->
+            <div id="recorder-playback-panel" style="display: none; border-top: 1px solid var(--panel-border); padding-top: 1.25rem;">
+              <h4 style="margin-bottom: 0.75rem; color: var(--text-main);">Verify Recording</h4>
+              <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+                <button id="playback-recorded-btn" class="audio-trigger-btn" style="flex: 1; justify-content: center; display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0;">
+                  <span>▶️ Play</span>
+                </button>
+                <button id="discard-recorded-btn" class="audio-trigger-btn" style="border-color: var(--error); color: var(--error); flex: 1; justify-content: center; display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0;">
+                  <span>🗑️ Discard</span>
+                </button>
+              </div>
+              <button id="save-recorded-btn" class="level-action-btn" style="width: 100%; justify-content: center; display: flex; font-size: 1rem; padding: 0.75rem; font-weight: 600;">💾 Save Recording (+15 XP)</button>
+            </div>
+          </div>
+          
+          <!-- Right Table Dataset Panel -->
+          <div class="glass-panel dataset-list-card" style="flex: 1; min-height: 400px; display: flex; flex-direction: column;">
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+              <h3 style="font-size: 1.25rem;">Custom Voices Saved (<span id="dataset-count-val">0</span>)</h3>
+              <button id="download-dataset-zip-btn" class="level-action-btn" style="font-size: 0.85rem; padding: 0.5rem 1rem; display: none;">📦 Download Dataset (ZIP)</button>
+            </div>
+            
+            <div class="dataset-table-wrapper" style="flex: 1; overflow-y: auto;">
+              <table class="data-table" id="dataset-recordings-table" style="width: 100%;">
+                <thead>
+                  <tr>
+                    <th>Word</th>
+                    <th>Translation</th>
+                    <th>Recorded Date</th>
+                    <th style="text-align: right; width: 120px;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="dataset-recordings-tbody">
+                  <!-- Injected dynamically -->
+                  <tr>
+                    <td colspan="4" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">No custom recordings saved yet. Select a word on the left to start!</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </section>
